@@ -1,26 +1,764 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #07151a;
+  --bg-deep: #041014;
+
+  --frame: #26383a;
+  --frame-dark: #162629;
+  --frame-light: #405253;
+
+  --blue: #159cff;
+  --blue-dark: #0874d1;
+
+  --orange: #ffad08;
+  --orange-dark: #e47700;
+
+  --red: #ff4848;
+  --red-dark: #d62f38;
+
+  --green: #40bd83;
+  --green-dark: #279462;
+
+  --yellow: #ffe56b;
+
+  --white: #fffdf2;
+  --text: #e8eeee;
+  --muted: #819092;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  margin: 0;
+  min-height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: "Press Start 2P", monospace;
+  background: var(--bg-deep);
+  color: var(--white);
+}
+
+/* =========================================================
+   CRT / ARCADE BACKGROUND
+   ========================================================= */
+
+.arcana-noise {
+  position: relative;
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 25%,
+      #123d4a 0%,
+      #0b252e 32%,
+      #06151a 72%,
+      #030b0e 100%
+    );
+}
+
+/* scanlines */
+
+.arcana-noise::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+
+  pointer-events: none;
+  z-index: 50;
+
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0.045) 0px,
+      rgba(255, 255, 255, 0.045) 1px,
+      rgba(0, 0, 0, 0.12) 1px,
+      rgba(0, 0, 0, 0.12) 4px
+    );
+
+  animation: crt-flicker 0.13s infinite;
+}
+
+/* moving refresh streak */
+
+.arcana-noise::after {
+  content: "";
+  position: fixed;
+
+  left: 0;
+  right: 0;
+  top: -20%;
+
+  height: 16%;
+
+  pointer-events: none;
+  z-index: 51;
+
+  background:
+    linear-gradient(
+      to bottom,
+      transparent,
+      rgba(255, 255, 255, 0.015) 30%,
+      rgba(53, 231, 255, 0.07) 70%,
+      transparent
+    );
+
+  animation: crt-refresh 6s linear infinite;
+}
+
+@keyframes crt-refresh {
+  0% {
+    top: -20%;
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    top: 120%;
+    opacity: 0;
+  }
+}
+
+@keyframes crt-flicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  18% {
+    opacity: 0.96;
+  }
+
+  19% {
+    opacity: 1;
+  }
+
+  61% {
+    opacity: 0.98;
+  }
+
+  62% {
+    opacity: 0.94;
+  }
+
+  63% {
+    opacity: 1;
+  }
+}
+
+/* =========================================================
+   MAIN ARCADE PANEL
+   ========================================================= */
+
+.arcana-panel {
+  position: relative;
+
+  padding: 3px;
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--frame-light),
+      var(--frame) 20%,
+      var(--frame-dark)
+    );
+
+  border: 5px solid #101b1e;
+
+  box-shadow:
+    0 7px 0 #030708,
+    0 12px 0 rgba(0, 0, 0, 0.45);
+
+  image-rendering: pixelated;
+}
+
+/* inner screen */
+
+.arcana-panel::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+
+  border: 2px solid #536364;
+
+  pointer-events: none;
+}
+
+/* =========================================================
+   TITLES
+   ========================================================= */
+
+.arcana-title {
+  font-family: "Press Start 2P", monospace;
+  font-weight: 400;
+
+  text-transform: uppercase;
+  line-height: 1.4;
+
+  color: var(--white);
+
+  text-shadow:
+    5px 5px 0 #061014,
+    3px 0 0 var(--blue),
+    -3px 0 0 var(--red);
+}
+
+.arcana-subtitle {
+  font-family: "Press Start 2P", monospace;
+
+  color: var(--yellow);
+
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+
+  text-shadow:
+    3px 3px 0 #071014;
+}
+
+.pixel-muted {
+  font-family: "Press Start 2P", monospace;
+
+  color: #9baaaa;
+
+  text-transform: uppercase;
+
+  font-size: 0.55rem;
+  line-height: 1.9;
+
+  text-shadow: 2px 2px 0 #071014;
+}
+
+.reveal-card-image {
+  cursor: pointer;
+  position: relative;
+  transition: box-shadow 150ms ease;
+}
+.reveal-card {
+  position: relative;
+
+  width: fit-content;
+  max-width: 90vw;
+
+  padding: 10px;
+
+  cursor: pointer;
+
+  transform-style: preserve-3d;
+
+  transition:
+    transform 90ms ease-out,
+    box-shadow 180ms ease;
+
+  will-change: transform;
+}
+
+.card-flip {
+  position: relative;
+
+  height: 58vh;
+  max-height: 680px;
+  aspect-ratio: 2 / 3;
+
+  transform-style: preserve-3d;
+
+  transition: transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.reveal-card.is-revealed .card-flip {
+  transform: rotateY(180deg);
+}
+.card-face {
+  position: absolute;
+  inset: 0;
+
+  overflow: hidden;
+
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+
+  transform-style: preserve-3d;
+}
+
+.card-front {
+  transform: rotateY(180deg);
+}
+
+.card-back {
+  transform: rotateY(0deg);
+}
+.card-back {
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.12),
+    inset 0 0 40px rgba(0, 0, 0, 0.3);
+}
+.reveal-card {
+  cursor: pointer;
+}
+
+.reveal-card::after {
+  content: "CLICK TO REVEAL";
+
+  position: absolute;
+
+  left: 50%;
+  bottom: -42px;
+
+  transform: translateX(-50%);
+
+  white-space: nowrap;
+
+  color: var(--yellow);
+
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.55rem;
+
+  text-shadow: 2px 2px 0 #000;
+
+  pointer-events: none;
+
+  opacity: 0.8;
+}
+
+.reveal-card.is-revealed::after {
+  content: "";
+}
+.card-face .holo-overlay,
+.card-face .holo-glare {
+  z-index: 2;
+}
+
+.reveal-card-image {
+  position: relative;
+
+  height: 58vh;
+  max-height: 680px;
+  aspect-ratio: 2 / 3;
+
+  overflow: hidden;
+
+  background: #050607;
+
+  isolation: isolate;
+}
+
+.reveal-card-image img {
+  position: relative;
+
+  z-index: 1;
+
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  image-rendering: pixelated;
+}
+
+.reveal-card.is-hovered .holo-overlay {
+  opacity: 0.8;
+}
+
+.reveal-card.is-hovered .holo-glare {
+  opacity: 0.8;
+}
+
+.holo-overlay {
+  position: absolute;
+  inset: 0;
+
+  z-index: 2;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  mix-blend-mode: screen;
+
+  background:
+    linear-gradient(
+      115deg,
+      transparent 10%,
+      rgba(255, 0, 80, 0.28) 25%,
+      rgba(255, 220, 0, 0.22) 35%,
+      rgba(0, 255, 220, 0.28) 47%,
+      rgba(40, 100, 255, 0.28) 58%,
+      rgba(180, 0, 255, 0.25) 70%,
+      transparent 88%
+    );
+
+  background-size: 220% 220%;
+
+  background-position:
+    var(--shine-x)
+    var(--shine-y);
+
+  transition:
+    opacity 180ms ease;
+
+  filter: saturate(1.4);
+}
+
+.holo-glare {
+  position: absolute;
+  inset: 0;
+
+  z-index: 3;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  background:
+    repeating-linear-gradient(
+      115deg,
+      transparent 0px,
+      transparent 9px,
+      rgba(255, 255, 255, 0.07) 10px,
+      transparent 11px,
+      transparent 22px
+    );
+
+  mix-blend-mode: overlay;
+
+  transform:
+    translate(
+      calc((var(--shine-x) - 50%) * 0.08),
+      calc((var(--shine-y) - 50%) * 0.08)
+    );
+
+  transition:
+    opacity 180ms ease;
+}
+
+.reveal-card.is-hovered {
+  box-shadow:
+    0 12px 0 #030708,
+    0 25px 50px rgba(0, 0, 0, 0.55),
+    0 0 30px rgba(53, 231, 255, 0.12);
+}
+
+.reveal-card-image:hover {
+  box-shadow:
+    0 10px 0 #030708,
+    0 20px 45px rgba(0, 0, 0, 0.55),
+    0 0 35px rgba(53, 231, 255, 0.12);
+}
+
+.crt-content {
+  position: relative;
+  z-index: 1;
+
+  filter: url("#crt-barrel");
+
+  /*
+   * Tiny perspective makes the screen feel like a physical tube.
+   */
+  transform:
+    perspective(1400px)
+    scale(1.01);
+
+  transform-origin: center;
+}
+
+.crt-screen {
+  position: relative;
+
+  width: 100%;
+  min-height: 100vh;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      ellipse at center,
+      #123c48 0%,
+      #0b252d 35%,
+      #061419 75%,
+      #03090c 100%
+    );
+
+  /*
+   * Physical curved glass.
+   */
+  border-radius: 4% / 3%;
+
+  box-shadow:
+    inset 0 0 140px rgba(0, 0, 0, 0.85),
+    inset 0 0 45px rgba(0, 0, 0, 0.7),
+    0 0 80px rgba(0, 0, 0, 0.6);
+}
+
+.crt-screen::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  z-index: 70;
+
+  pointer-events: none;
+
+  border-radius: 4% / 3%;
+
+  background:
+    radial-gradient(
+      ellipse at 50% 45%,
+      transparent 45%,
+      rgba(0, 0, 0, 0.08) 65%,
+      rgba(0, 0, 0, 0.42) 100%
+    );
+
+  box-shadow:
+    inset 0 0 100px rgba(0, 0, 0, 0.65);
+
+  mix-blend-mode: multiply;
+}
+
+.crt-screen::after {
+  content: "";
+
+  position: absolute;
+
+  left: -10%;
+  right: -10%;
+  top: -20%;
+
+  height: 14%;
+
+  z-index: 71;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(255, 255, 255, 0.00) 20%,
+      rgba(53, 231, 255, 0.055) 55%,
+      rgba(255, 255, 255, 0.025) 70%,
+      transparent 100%
+    );
+
+  filter: blur(1px);
+
+  animation: crt-refresh 6s linear infinite;
+}
+
+@keyframes crt-refresh {
+  0% {
+    top: -20%;
+    transform: scaleX(1);
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 1;
+  }
+
+  25% {
+    transform: scaleX(1.01);
+  }
+
+  50% {
+    transform: scaleX(0.99);
+  }
+
+  75% {
+    transform: scaleX(1.015);
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    top: 120%;
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+/* =========================================================
+   CHOICE BUTTONS
+   ========================================================= */
+
+.pixel-choice {
+  cursor: pointer;
+  position: relative;
+
+  border: 4px solid #111c20;
+
+  background: var(--frame-light);
+
+  color: var(--white);
+
+  box-shadow:
+    inset 0 -6px 0 rgba(0, 0, 0, 0.25),
+    5px 5px 0 #030708;
+
+  font-family: "Press Start 2P", monospace;
+
+  transition:
+    transform 80ms,
+    filter 80ms;
+}
+
+.pixel-choice:hover {
+  transform: translate(-2px, -2px);
+
+  filter: brightness(1.15);
+
+  box-shadow:
+    inset 0 -6px 0 rgba(0, 0, 0, 0.25),
+    7px 7px 0 #030708;
+}
+
+.pixel-choice.selected {
+  transform: translate(-2px, -2px);
+
+  background: var(--pink, #ff3d91);
+
+  border-color: #111c20;
+
+  color: white;
+
+  box-shadow:
+    inset 0 -6px 0 rgba(0, 0, 0, 0.25),
+    7px 7px 0 #030708;
+}
+
+/* =========================================================
+   DRAW BUTTON — BLUE ARCADE BUTTON
+   ========================================================= */
+
+.draw-button {
+  position: relative;
+
+  border: 5px solid #10191d;
+
+  background:
+    linear-gradient(
+      to bottom,
+      #32b7ff 0%,
+      var(--blue) 55%,
+      var(--blue-dark) 100%
+    );
+
+  color: white;
+
+  font-family: "Press Start 2P", monospace;
+  font-weight: 400;
+
+  text-shadow:
+    3px 3px 0 #07548e;
+
+  box-shadow:
+    inset 0 5px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -7px 0 rgba(0, 0, 0, 0.22),
+    7px 7px 0 #030708;
+
+  transition:
+    transform 70ms,
+    filter 70ms;
+}
+
+.draw-button:hover:not(:disabled) {
+  filter: brightness(1.12);
+
+  transform: translate(-2px, -2px);
+
+  box-shadow:
+    inset 0 5px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -7px 0 rgba(0, 0, 0, 0.22),
+    9px 9px 0 #030708;
+}
+
+.draw-button:active:not(:disabled) {
+  transform: translate(5px, 5px);
+
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.15),
+    2px 2px 0 #030708;
+}
+
+.draw-button:disabled {
+  filter: grayscale(0.7);
+  opacity: 0.35;
+}
+
+/* =========================================================
+   CARD
+   ========================================================= */
+
+.arcana-card {
+  position: relative;
+
+  background: var(--frame);
+
+  border: 5px solid #101b1e;
+
+  box-shadow:
+    0 7px 0 #030708,
+    0 12px 0 rgba(0, 0, 0, 0.5);
+
+  image-rendering: pixelated;
+}
+
+.pixel-art {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* =========================================================
+   DECORATIVE PIXEL STARS
+   ========================================================= */
+
+.pixel-star {
+  position: absolute;
+
+  font-family: "Press Start 2P", monospace;
+
+  color: var(--yellow);
+
+  text-shadow:
+    3px 3px 0 var(--red),
+    -3px -3px 0 var(--blue);
+
+  animation: pixel-float 1.8s steps(4) infinite;
+}
+
+@keyframes pixel-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.choice-masculine {
+  background: var(--blue);
+}
+
+.choice-feminine {
+  background: var(--red);
+}
+
+.choice-either {
+  background: var(--green);
 }
